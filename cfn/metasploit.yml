@@ -1,0 +1,58 @@
+Description: Metasploit lab
+
+Parameters:
+  vmSize:
+    Description: Metasploit VM Size
+    Type: String
+    Default: t2.small
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+  keyName:
+    Description: SSH keyname
+    Type: AWS::EC2::KeyPair::KeyName
+
+Mappings:
+  Regions:
+    us-east-1: 
+      kaliAmi: ami-01f9e4b812276174b
+      vpc: vpc-6960660c
+    eu-west-1: 
+      kaliAmi: ami-0b7668b6cfbce14eb
+      vpc: vpc-c29d26a7
+    eu-west-2: 
+      kaliAmi: ami-058b7432ca3ded532
+      vpc: vpc-d11aaeb8
+
+Resources:
+  MetasploitSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Metasploit SecurityGroup'
+      VpcId: !FindInMap
+        - Regions
+        - !Ref 'AWS::Region'
+        - vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: '0.0.0.0/0'
+
+  MetasploitEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap
+        - Regions
+        - !Ref 'AWS::Region'
+        - kaliAmi
+      InstanceType: !Ref 'vmSize'
+      KeyName: !Ref 'keyName'
+      SecurityGroupIds:
+        - !Ref 'MetasploitSG'
+      Tags:
+        - Key: 'Name'
+          Value:  'Metasploit'
