@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "vmSize",
+    "ParameterValue": "t2.micro"
+  }, 
+  {
+    "ParameterKey": "keyName",
+    "ParameterValue": "radek"
+  }
+]
