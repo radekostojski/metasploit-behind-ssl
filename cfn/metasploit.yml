@@ -56,3 +56,4 @@ Resources:
       Tags:
         - Key: 'Name'
           Value:  'Metasploit'
+
