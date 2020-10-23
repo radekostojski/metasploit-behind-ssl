@@ -1,7 +1,7 @@
 Description: Metasploit lab
 
 Parameters:
-  vmSize:
+  vmSizeMetasploit:
     Description: Metasploit VM Size
     Type: String
     Default: t2.small
@@ -11,6 +11,16 @@ Parameters:
       - t2.medium
       - t2.large
       - t2.xlarge
+  vmSizeNginX:
+    Description: NginX VM Size
+    Type: String
+    Default: t2.small
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge  
   keyName:
     Description: SSH keyname
     Type: AWS::EC2::KeyPair::KeyName
@@ -19,19 +29,22 @@ Mappings:
   Regions:
     us-east-1: 
       kaliAmi: ami-01f9e4b812276174b
+      ubuntuAmi: ami-0dba2cb6798deb6d8
       vpc: vpc-6960660c
     eu-west-1: 
       kaliAmi: ami-0b7668b6cfbce14eb
+      ubuntuAmi: ami-06fd8a495a537da8b
       vpc: vpc-c29d26a7
     eu-west-2: 
       kaliAmi: ami-058b7432ca3ded532
+      ubuntuAmi: ami-05c424d59413a2876
       vpc: vpc-d11aaeb8
 
 Resources:
   MetasploitSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'Metasploit SecurityGroup'
+      GroupDescription: 'Metasploit SecGroup'
       VpcId: !FindInMap
         - Regions
         - !Ref 'AWS::Region'
@@ -49,7 +62,7 @@ Resources:
         - Regions
         - !Ref 'AWS::Region'
         - kaliAmi
-      InstanceType: !Ref 'vmSize'
+      InstanceType: !Ref 'vmSizeMetasploit'
       KeyName: !Ref 'keyName'
       SecurityGroupIds:
         - !Ref 'MetasploitSG'
@@ -57,3 +70,39 @@ Resources:
         - Key: 'Name'
           Value:  'Metasploit'
 
+  NginXSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'NginX SecGroup'
+      VpcId: !FindInMap
+        - Regions
+        - !Ref 'AWS::Region'
+        - vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: '0.0.0.0/0'
+
+  NginXEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap
+        - Regions
+        - !Ref 'AWS::Region'
+        - ubuntuAmi
+      InstanceType: !Ref 'vmSizeNginX'
+      KeyName: !Ref 'keyName'
+      SecurityGroupIds:
+        - !Ref 'NginXSG'
+      Tags:
+        - Key: 'Name'
+          Value:  'NginX-MetaSploitProxy'
